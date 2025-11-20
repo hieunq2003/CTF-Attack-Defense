@@ -1,5 +1,5 @@
 <?php
-require __DIR__ . '../../db.php';
+require __DIR__ . '/../../db.php';
 
 $name = $_GET['name'] ?? '';
 if ($name === '') {
