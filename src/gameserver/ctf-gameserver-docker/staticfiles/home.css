@@ -1,0 +1,179 @@
+/* Background tổng cho flatpage (home) */
+body {
+    background: radial-gradient(circle at top, #13192b 0%, #050712 55%, #020308 100%);
+    color: #e8f7ff;
+}
+
+/* H1 mặc định */
+h1 {
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+/* ===== HERO ===== */
+.home-hero {
+    position: relative;
+    margin-top: 30px;
+    margin-bottom: 35px;
+    border-radius: 18px;
+    overflow: hidden;
+    height: 260px;
+    background: radial-gradient(circle at 0% 0%, #1bffb3 0%, #111727 40%, #050712 100%);
+    box-shadow:
+        0 0 25px rgba(20, 255, 236, 0.35),
+        0 0 80px rgba(91, 53, 255, 0.4);
+}
+
+/* Canvas particles */
+#particles-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+/* Overlay nội dung */
+.hero-overlay {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    padding: 32px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    color: #e8fdff;
+}
+
+.hero-left {
+    max-width: 55%;
+}
+
+.hero-kicker {
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #8cf9ff;
+    margin-bottom: 8px;
+    opacity: 0.85;
+}
+
+.hero-title {
+    font-size: 40px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #ffffff;
+    text-shadow:
+        0 0 8px rgba(0, 255, 209, 0.7),
+        0 0 32px rgba(0, 255, 209, 0.5);
+}
+
+.hero-subtitle {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #b9d9ff;
+}
+
+/* ===== COUNTDOWN PANEL ===== */
+.hero-right {
+    min-width: 260px;
+}
+
+.countdown-panel {
+    padding: 18px 20px;
+    border-radius: 14px;
+    background: rgba(5, 12, 32, 0.72);
+    border: 1px solid rgba(10, 255, 219, 0.6);
+    box-shadow:
+        0 0 15px rgba(0, 255, 209, 0.5),
+        0 0 50px rgba(34, 139, 230, 0.4);
+    backdrop-filter: blur(8px);
+    font-size: 14px;
+}
+
+.status-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #9ee8ff;
+    margin-bottom: 4px;
+}
+
+.status-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 10px;
+}
+
+.time-grid {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.time-box {
+    flex: 1;
+    padding: 8px 6px;
+    border-radius: 10px;
+    background: radial-gradient(circle at top, rgba(21, 255, 217, 0.25), rgba(5, 11, 26, 0.95));
+    text-align: center;
+    border: 1px solid rgba(105, 230, 255, 0.5);
+}
+
+.time-box span {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: "Consolas", "SF Mono", monospace;
+    color: #14ffec;
+    text-shadow: 0 0 10px rgba(20, 255, 236, 0.9);
+}
+
+.time-box small {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #9cc5ff;
+}
+
+.time-range {
+    font-size: 11px;
+    color: #9fbdff;
+    opacity: 0.9;
+}
+
+/* ===== CONTENT CARD ===== */
+.content-card {
+    margin-top: 15px;
+    padding: 20px 24px;
+    border-radius: 16px;
+    background: rgba(5, 9, 22, 0.92);
+    border: 1px solid rgba(52, 116, 255, 0.45);
+    box-shadow: 0 0 25px rgba(1, 12, 66, 0.85);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .home-hero {
+        height: auto;
+    }
+
+    .hero-overlay {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 20px 18px 24px;
+    }
+
+    .hero-left {
+        max-width: 100%;
+    }
+
+    .hero-title {
+        font-size: 30px;
+    }
+
+    .hero-right {
+        width: 100%;
+    }
+}

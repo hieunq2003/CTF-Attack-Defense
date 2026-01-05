@@ -1,0 +1,134 @@
+/*
+ * Style sheet for some custom styles which cannot be achieved with Bootstrap.
+ */
+
+/*
+ * Target all headings that have any element preceding them on the same level, this prevents unnecessary
+ * margins for the first heading
+ */
+* + h1, * + h2, * + h3, * + h5, * + h6 {
+    margin-top: 1.1em;
+}
+
+#tick {
+    position: absolute;
+    top: 80px;
+    right: 40px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #00ff88;
+    text-shadow: 0 0 8px #00ff88, 0 0 15px #00ffaa;
+    padding: 6px 14px;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid #00ff88;
+    border-radius: 8px;
+}
+
+
+#user-menu[data-bs-popper] {
+    left: unset;
+    right: 0;
+}
+
+#page-content {
+    margin-bottom: 60px;
+}
+
+.nav-pills {
+    margin-bottom: 30px;
+}
+
+input.number-field {
+    width: 5em;
+}
+
+.clearable-input-image {
+    vertical-align: top;
+}
+
+.flatpage-content img {
+    max-width: 100%;
+}
+
+th.border-left, td.border-left {
+    border-left: 2px solid #DDDDDD;
+}
+
+th.border-right, td.border-right {
+    border-right: 2px solid #DDDDDD;
+}
+
+.image-column {
+    width: 80px;
+}
+
+.name-column {
+     min-width: 12em;
+     max-width: 15em;
+}
+
+.team-image {
+    width: 50px;
+    max-height: 50px;
+    object-fit: contain;
+}
+
+img#load-spinner {
+    width: 1.7em;
+}
+
+#history-table td {
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+#history-table td a {
+    /* Make the whole table cell clickable */
+    display: block;
+}
+
+#history-table td a {
+    text-decoration: none;
+}
+
+#check-list {
+    padding-left: 20px;
+}
+
+/* --- Home meta / credits block under logo --- */
+.home-meta-card {
+    margin-top: 1.8rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.home-meta-card-inner {
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid #00ff80;
+    border-radius: 10px;
+    padding: 1.1rem 2.3rem;
+    max-width: 520px;
+    text-align: center;
+    box-shadow: 0 0 18px rgba(0, 255, 128, 0.25);
+}
+
+.home-meta-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9effb5;
+    margin-bottom: 0.4rem;
+}
+
+.home-meta-title span {
+    color: #ffffff;
+}
+
+.home-meta-text {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+    color: #e5ffe5;
+}
+

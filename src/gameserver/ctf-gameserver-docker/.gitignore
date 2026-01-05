@@ -1,0 +1,34 @@
+__pycache__/
+
+# Development venv
+/.venv/
+
+# Python packaging
+/build/
+/dist/
+/src/ctf_gameserver.egg-info/
+
+# Debian packaging
+/.pybuild/
+/debian/ctf-gameserver/
+/debian/files
+
+# Python testing
+/.coverage
+/htmlcov/
+
+# Go examples
+/examples/checker/example_checker_go/example_checker
+
+# Web component
+/src/ctf_gameserver/web/dev-db.sqlite3
+/src/ctf_gameserver/web/team_downloads/
+/src/ctf_gameserver/web/uploads/
+/src/ctf_gameserver/web/static/ext/
+/src/ctf_gameserver/web/registration/countries.csv
+# We don't actually migrate anything and generate migrations files dynamically
+/src/ctf_gameserver/web/*/migrations/__init__.py
+/src/ctf_gameserver/web/*/migrations/0001_initial.py
+
+# MkDocs HTML build
+/docs_site/

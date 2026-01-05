@@ -1,0 +1,383 @@
+{% load static %}
+{% load i18n %}
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" itemscope="itemscope" itemtype="http://schema.org/WebPage"
+      prefix="og: http://ogp.me/ns#">
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Bootstrap + FontAwesome + style gốc -->
+    <link rel="stylesheet" href="{% static 'ext/bootstrap/css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'ext/fontawesome-free/css/fontawesome.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'ext/fontawesome-free/css/solid.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+
+    <!-- Toàn bộ hiệu ứng neon / dark theme dùng chung -->
+    <style>
+        /* ===== BODY & NỀN CHUNG TOÀN SITE ===== */
+        body {
+            margin: 0;
+            background: radial-gradient(circle at top, #10142a 0, #02030a 35%, #000 100%);
+            color: #e5e5e5;
+            font-family: "JetBrains Mono", monospace;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Canvas particles dưới mọi thứ */
+        #particles-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Navbar luôn nằm trên cùng */
+        .navbar {
+            position: relative;
+            z-index: 5;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.7);
+            background: rgba(5, 5, 10, 0.95) !important;
+            border-bottom: 1px solid rgba(0, 255, 120, 0.25);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #39ff14 !important;
+            text-shadow: 0 0 12px rgba(57,255,20,0.9);
+        }
+
+        .nav-link {
+            color: #e5e5e5 !important;
+        }
+
+        .nav-link:hover {
+            color: #39ff14 !important;
+        }
+
+        .dropdown-menu {
+            background: #050b12;
+            border: 1px solid rgba(0, 255, 120, 0.3);
+        }
+
+        .dropdown-item {
+            color: #e5e5e5;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(0,255,120,0.15);
+            color: #39ff14;
+        }
+
+        /* Toàn bộ nội dung chính luôn nằm trên particles */
+        #page-content {
+            position: relative;
+            z-index: 3;
+        }
+
+        /* Một số class dùng cho flatpage (nhưng có thể dùng chỗ khác nếu muốn) */
+        .title-main {
+            text-align: center;
+            font-size: 52px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: #39ff14;
+            text-shadow: 0 0 20px rgba(57,255,20,0.8);
+            margin-top: 20px;
+        }
+
+        .status-box {
+            max-width: 800px;
+            margin: 25px auto;
+            padding: 25px;
+            background: rgba(0,255,80,0.10);
+            border: 1px solid rgba(0,255,80,0.25);
+            border-radius: 12px;
+            font-size: 22px;
+            text-align: center;
+            backdrop-filter: blur(6px);
+        }
+
+        #countdown {
+            font-size: 26px;
+            font-weight: bold;
+            color: #32ff7e;
+            text-shadow: 0 0 10px #32ff7e;
+        }
+
+        .center-logo {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .center-logo img {
+            width: 260px;
+            border-radius: 12px;
+            box-shadow: 0 0 25px rgba(255,255,255,0.15);
+        }
+
+        /* Cards / bảng scoreboard nhìn cũng “hacker” hơn 1 chút */
+        .card,
+        .table,
+        .alert {
+            background-color: rgba(5, 8, 15, 0.9);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 120, 0.18);
+        }
+
+        .table thead th {
+            border-bottom-color: rgba(0,255,120,0.5);
+        }
+
+        .alert-info {
+            border-color: rgba(0, 255, 200, 0.5);
+        }
+    </style>
+
+    <!-- Script Bootstrap / jQuery (như cũ, không đổi route) -->
+    <script src="{% static 'ext/jquery.min.js' %}" defer="defer"></script>
+    <script src="{% static 'ext/bootstrap/js/bootstrap.bundle.min.js' %}" defer="defer"></script>
+
+    <title itemprop="name">{% block title %}{% endblock %} | {{ competition_name }}</title>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="{{ competition_name }}" />
+</head>
+
+<body>
+    <!-- Particles canvas chung cho toàn web -->
+    <canvas id="particles-bg"></canvas>
+
+    <nav class="navbar navbar-expand-lg bg-dark mb-5" data-bs-theme="dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ HOME_URL }}">{{ competition_name }}</a>
+
+            <!-- "Hamburger menu" for small screens -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#main-menu" aria-controls="main-menu"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="main-menu">
+                <ul class="navbar-nav me-auto">
+                    {% for category in all_categories %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ category.title }}
+                        </a>
+
+                        <ul class="dropdown-menu">
+                            {% for page in category.flatpage_set.all %}
+                            <li><a class="dropdown-item" href="{{ page.get_absolute_url }}">{{ page.title }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    {% endfor %}
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            {% trans 'Competition' %}
+                        </a>
+
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'team_list' %}">
+                                    {% trans 'Registered Teams' %}
+                                </a>
+                            </li>
+                            {% if services_public %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'scoreboard' %}">
+                                    {% trans 'Scoreboard' %}
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'service_status' %}">
+                                    {% trans 'Service Status' %}
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </li>
+
+                    {% for page in pages_without_category %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ page.get_absolute_url }}">{{ page.title }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <ul class="navbar-nav">
+                    {% if not user.is_authenticated %}
+                        {% if registration_open %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}">{% trans 'Register' %}</a>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">{% trans 'Login' %}</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ user.username }}
+                            </a>
+
+                            <ul id="user-menu" class="dropdown-menu">
+                                {% if user.team %}
+                                <li>
+                                    <span class="dropdown-item-text">
+                                        {% trans 'Team number' %}: {{ user.team.net_number }}
+                                    </span>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'list_team_downloads' %}">
+                                        {% trans 'Downloads' %}
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                                {% if registration_open %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'edit_team' %}">
+                                        {% trans 'Edit Team' %}
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                {% endif %}
+
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'status_history' %}">
+                                        {% trans 'VPN Status History' %}
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+
+                                {% if user.is_staff %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'admin:index' %}">
+                                        {% trans 'Administration' %}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'service_history' %}">
+                                        {% trans 'Service History' %}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'missing_checks' %}">
+                                        {% trans 'Missing Checks' %}
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                {% endif %}
+
+                                <form method="post" action="{% url 'logout' %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <li>
+                                        <button type="submit" class="dropdown-item">
+                                            {% translate 'Logout' %}
+                                        </button>
+                                    </li>
+                                </form>
+                            </ul>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    {% block container %}
+    {% endblock %}
+
+    <!-- ========== PARTICLE SCRIPT TOÀN CỤC (NHẸ, KHÔNG ĐỤNG ROUTE) ========== -->
+    <script>
+    (function() {
+        const canvas = document.getElementById("particles-bg");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.35;
+                this.vy = (Math.random() - 0.5) * 0.35;
+                this.size = 1.3;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            draw() {
+                ctx.fillStyle = "#39ff14";
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = "#39ff14";
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function connectParticles() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 140) {
+                        ctx.strokeStyle = "rgba(57,255,20," + (1 - dist / 140) + ")";
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = 80;
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            connectParticles();
+            requestAnimationFrame(animate);
+        }
+
+        initParticles();
+        animate();
+    })();
+    </script>
+</body>
+</html>

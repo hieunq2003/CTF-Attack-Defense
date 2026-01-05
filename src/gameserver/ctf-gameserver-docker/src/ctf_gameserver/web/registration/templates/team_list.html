@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div>
+    <h1>{% block title %}{% trans 'Registered Teams' %}{% endblock %}</h1>
+</div>
+
+{% include 'competition_nav.html' with active='team_list' %}
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col" class="image-column"><!-- Image --></th>
+                <th scope="col">{% trans 'Name' %}</th>
+                <th scope="col">{% trans 'Affiliation' %}</th>
+                <th scope="col">{% trans 'Country' %}</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for team in teams %}
+            <tr>
+                <td>
+                    {% if team.image %}
+                    <a href="{{ team.image.url }}">
+                        <img class="team-image" src="{{ team.image.get_thumbnail_url }}"
+                         alt="{{ team.user.username }}" />
+                    </a>
+                    {% endif %}
+                </td>
+                <td>{{ team.user.username }}</td>
+                <td>{% if team.affiliation %}{{ team.affiliation }}{% endif %}</td>
+                <td>{{ team.country }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

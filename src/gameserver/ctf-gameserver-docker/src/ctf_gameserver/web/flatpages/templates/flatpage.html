@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+
+<h1 class="title-main">
+    {% if page.is_home_page %}
+        {{ competition_name }}
+    {% else %}
+        {{ page.title }}
+    {% endif %}
+</h1>
+
+{# ----- ONLY HOME PAGE SHOWS STATUS + LOGO ----- #}
+{% if page.is_home_page %}
+    <div class="status-box">
+        {% if game_state == "upcoming" %}
+            <div><strong>{{ competition_name }}</strong> starts in:</div>
+            <div id="countdown">Loading…</div>
+
+            <script>
+            (function() {
+                const el = document.getElementById("countdown");
+                if (!el) return;
+
+                const target = new Date("{{ game_start|date:'Y-m-d H:i:s' }}").getTime();
+
+                function updateCountdown() {
+                    const now = new Date().getTime();
+                    const diff = target - now;
+
+                    if (diff <= 0) {
+                        el.innerHTML = "LIVE NOW!";
+                        return;
+                    }
+
+                    const d = Math.floor(diff / (1000*60*60*24));
+                    const h = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+                    const m = Math.floor((diff % (1000*60*60)) / (1000*60));
+                    const s = Math.floor((diff % (1000*60)) / 1000);
+
+                    el.innerHTML = `${d}d ${h}h ${m}m ${s}s`;
+                }
+
+                updateCountdown();
+                setInterval(updateCountdown, 1000);
+            })();
+            </script>
+
+        {% elif game_state == "running" %}
+            <strong>{{ competition_name }}</strong> is running!
+
+        {% elif game_state == "ended" %}
+            <strong>{{ competition_name }}</strong> has ended.
+        {% endif %}
+    </div>
+
+    <div class="center-logo">
+        <img src="https://raw.githubusercontent.com/hieunq2003/CTF-Attack-Defense/e6c77513c7b4ea6714951c0ec64afedc9a959bce/logo_ptit.jpg"
+             alt="PTIT Logo">
+    </div>
+
+    {# Credits + Discord, dùng lại status-box để cùng style #}
+    <div class="status-box" style="margin-top: 30px;">
+        <p class="mb-1">
+            CTF infrastructure by
+            <strong>Team A17</strong> at
+        </p>
+        <p class="mb-1" style="white-space: nowrap;">
+            <strong>Posts and Telecommunications Institute of Technology.</strong>
+        </p>
+        <p class="mb-0">
+            <a href="https://discord.gg/PnEdmFuw"
+               target="_blank"
+               rel="noopener noreferrer">
+                Join our Discord server
+            </a>
+        </p>
+    </div>
+{% endif %}
+
+<div class="row mt-4">
+    {% if sidebar_links %}
+    <div class="col-sm-3 d-none d-sm-block">
+        <div class="list-group">
+            {% for linked_page in sidebar_links %}
+                <a href="{{ linked_page.get_absolute_url }}"
+                   class="list-group-item list-group-item-action {% if linked_page == page %}active{% endif %}">
+                    {{ linked_page.title }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="flatpage-content col-12 col-sm-9">
+    {% else %}
+    <div class="flatpage-content col-12">
+    {% endif %}
+        {{ page.render_content|safe }}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load form_as_bs_div %}
+
+{% block content %}
+<div class="row mb-4">
+    <h1 class="col-sm-auto">{% block title %}{% trans 'Edit Team' %}{% endblock %}</h1>
+    <div class="col-sm-auto ms-auto">
+        <a href="{% url 'password_change' %}" class="btn btn-secondary">{% trans 'Change password' %}</a>
+        {% if show_delete_button %}
+        <a href="{% url 'delete_team' %}" class="btn btn-danger">{% trans 'Delete team' %}</a>
+        {% endif %}
+    </div>
+</div>
+
+<form enctype="multipart/form-data" method="post" class="mt-4">
+    {% csrf_token %}
+
+    {{ user_form|as_bs_div }}
+    {{ team_form|as_bs_div }}
+
+    <button type="submit" class="btn btn-primary">{% trans 'Save' %}</button>
+</form>
+
+
+{% if delete_form %}
+<div class="modal show d-block">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">{% trans 'Delete team' %}</h2>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="modal-body">
+                    <p>
+                        {% blocktrans with user.username as username %}
+                        Do you really want to <strong>delete</strong> your team {{ username }}? There is
+                        <strong>no way</strong> to undo this!
+                        {% endblocktrans %}
+                    </p>
+                    <p>
+                        {% blocktrans %}
+                        Please enter your password for confirmation.
+                        {% endblocktrans %}
+                    </p>
+                    {{ delete_form|as_bs_div }}
+                </div>
+
+                <div class="modal-footer">
+                    <a href="{% url 'edit_team' %}" class="btn btn-secondary">{% trans 'Abort' %}</a>
+                    <button type="submit" class="btn btn-danger">{% trans 'Delete' %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal-backdrop show"></div>
+{% endif %}
+{% endblock %}

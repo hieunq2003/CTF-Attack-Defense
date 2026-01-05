@@ -1,0 +1,108 @@
+services:
+
+  # ======================================
+  # TEAM 1
+  # ======================================
+  team1-server:
+    image: teamsvc
+    container_name: team1-server
+    hostname: team1
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_MODULE
+    networks:
+      ctf_internal:
+        ipv4_address: 10.50.1.10
+#    ports:
+#      - "10001:22"        # SSH
+    expose:
+      - "22"
+    volumes:
+      - team1_mysql:/var/lib/mysql
+    environment:
+      - TEAM_USER=team1
+      - TEAM_PASSWORD=123
+
+  # ======================================
+  # TEAM 2
+  # ======================================
+  team2-server:
+    image: teamsvc
+    container_name: team2-server
+    hostname: team2
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_MODULE
+    networks:
+      ctf_internal:
+        ipv4_address: 10.50.2.10
+#    ports:
+#      - "10002:22"
+    expose:
+      - "22"
+    volumes:
+      - team2_mysql:/var/lib/mysql
+    environment:
+      - TEAM_USER=team2
+      - TEAM_PASSWORD=123
+
+  # ======================================
+  # TEAM 3
+  # ======================================
+  team3-server:
+    image: teamsvc
+    container_name: team3-server
+    hostname: team3
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_MODULE
+    networks:
+      ctf_internal:
+        ipv4_address: 10.50.3.10
+#    ports:
+#      - "10003:22"
+    expose:
+      - "22"
+    volumes:
+      - team3_mysql:/var/lib/mysql
+    environment:
+      - TEAM_USER=team3
+      - TEAM_PASSWORD=123
+
+
+  # ======================================
+  # TEAM 4
+  # ======================================
+  team4-server:
+    image: teamsvc
+    container_name: team4-server
+    hostname: team4
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_MODULE
+    networks:
+      ctf_internal:
+        ipv4_address: 10.50.4.10
+#    ports:
+#      - "10004:22"
+    expose:
+      - "22"
+    volumes:
+      - team4_mysql:/var/lib/mysql
+    environment:
+      - TEAM_USER=team4
+      - TEAM_PASSWORD=123
+
+networks:
+  ctf_internal:
+    external: true
+
+volumes:
+  team1_mysql:
+  team2_mysql:
+  team3_mysql:
+  team4_mysql:

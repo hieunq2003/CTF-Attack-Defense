@@ -1,0 +1,91 @@
+{% extends "base-wide.html" %}
+
+{% block content %}
+<h2 class="mb-3">System Log</h2>
+
+<div id="logbox"
+     style="
+        background:#000;
+        padding:20px;
+        height:600px;
+        overflow:auto;
+        white-space:pre-wrap;
+        font-size:14px;
+        font-family: monospace;
+     ">
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const box = document.getElementById("logbox");
+    if (!box) {
+        console.error("Không tìm thấy element #logbox");
+        return;
+    }
+
+    // Hàm append 1 dòng với màu sắc phù hợp
+    function appendLine(line) {
+        if (!line) return;
+        const row = document.createElement("div");
+        row.textContent = line;
+
+        if (line.includes("FORBIDDEN")) {
+            // Alert bị cấm → đỏ tươi, đậm
+            row.style.color = "#ff4040";
+            row.style.fontWeight = "bold";
+        } else {
+            // Bình thường → xanh lá
+            row.style.color = "#00ff00";
+        }
+
+        box.appendChild(row);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    // Nếu có EventSource cũ thì đóng lại để tránh trùng
+    if (window.fastlogEvtSource) {
+        try { window.fastlogEvtSource.close(); } catch (e) {}
+        window.fastlogEvtSource = null;
+    }
+
+    // 1) Load history: đúng 200 dòng cuối (tail -n 200)
+    fetch("{% url 'fastlog_history' %}")
+        .then(response => response.text())
+        .then(text => {
+            if (text) {
+                text.replace(/\n+$/, "").split(/\r?\n/).forEach(appendLine);
+            }
+        })
+        .catch(err => {
+            console.error("Lỗi load history:", err);
+        })
+        .finally(() => {
+            // 2) Sau khi load history xong thì mới bắt đầu tail -f
+            startSSE();
+        });
+
+    function startSSE() {
+        const evt = new EventSource("{% url 'fastlog_stream' %}");
+        window.fastlogEvtSource = evt;
+
+        evt.onopen = function () {
+            console.log("SSE fastlog_stream opened");
+        };
+
+        evt.onmessage = function (event) {
+            // Mỗi log mới → append 1 dòng, không mất history
+            appendLine(event.data);
+        };
+
+        evt.onerror = function (e) {
+            console.error("SSE lỗi:", e);
+            // Đóng kết nối cũ và tự reconnect sau 2s
+            try { evt.close(); } catch (err) {}
+            window.fastlogEvtSource = null;
+            setTimeout(startSSE, 2000);
+        };
+    }
+});
+</script>
+
+{% endblock %}

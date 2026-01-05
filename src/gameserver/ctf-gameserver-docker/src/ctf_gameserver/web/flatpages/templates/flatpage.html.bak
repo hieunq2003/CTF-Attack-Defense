@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div>
+    <h1>
+        {% block title %}
+        {% if page.is_home_page %}
+        {{ competition_name }}
+        {% else %}
+        {{ page.title }}
+        {% endif %}
+        {% endblock %}
+    </h1>
+</div>
+
+<div class="row mt-4">
+    {% if sidebar_links %}
+    <div class="col-sm-3 d-none d-sm-block">
+        <div class="list-group">
+            {% for linked_page in sidebar_links %}
+            <a href="{{ linked_page.get_absolute_url }}" 
+               class="list-group-item list-group-item-action {% if linked_page == page %}active{% endif %}">
+                {{ linked_page.title }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="flatpage-content col-12 col-sm-9">
+    {% else %}
+    <div class="flatpage-content col-12">
+    {% endif %}
+        {{ page.render_content }}
+    </div>
+</div>
+{% endblock %}

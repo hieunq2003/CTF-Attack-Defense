@@ -1,0 +1,125 @@
+#!/bin/bash
+
+###########################################
+# TEAM USER DYNAMIC (team1, team2, ...)
+###########################################
+
+# User mặc định trong image là 'team'
+TEAM_USER="${TEAM_USER:-team}"
+TEAM_PASSWORD="${TEAM_PASSWORD:-}"
+
+# Nếu trong image có user 'team' và TEAM_USER != 'team' thì đổi tên 'team' -> TEAM_USER
+if id team >/dev/null 2>&1 && [ "$TEAM_USER" != "team" ]; then
+    if ! id "$TEAM_USER" >/dev/null 2>&1; then
+        echo "[*] Renaming user 'team' -> '${TEAM_USER}'"
+        usermod -l "$TEAM_USER" team
+        usermod -d "/home/${TEAM_USER}" -m "$TEAM_USER"
+    else
+        echo "[!] TEAM_USER '${TEAM_USER}' đã tồn tại, bỏ qua rename."
+    fi
+fi
+
+# Đặt password cho user TEAM_USER nếu ENV đã cung cấp
+if [ -n "$TEAM_PASSWORD" ]; then
+    echo "[*] Setting password for user '${TEAM_USER}' từ ENV TEAM_PASSWORD"
+    echo "${TEAM_USER}:${TEAM_PASSWORD}" | chpasswd || \
+        echo "[!] Không đặt được password cho user ${TEAM_USER}"
+else
+    echo "[!] TEAM_PASSWORD không được set, user '${TEAM_USER}' giữ password mặc định (KHÔNG nên dùng khi mở cho team)."
+fi
+
+# Tạo sudoers cho đúng user TEAM_USER:
+# - Cho phép: service, apache2ctl, mysql, iptables, tcpdump
+# - Và toàn bộ các tool pentest đã cài: nmap, sqlmap, hydra, gobuster, nikto, tshark, nc...
+# - KHÔNG cho apt/apt-get/dpkg, systemctl,...
+cat >/etc/sudoers.d/ctfteam <<EOF
+Defaults:${TEAM_USER} !requiretty
+${TEAM_USER} ALL=(root) NOPASSWD: \
+    /usr/sbin/service, \
+    /usr/sbin/apache2ctl, \
+    /usr/bin/mysql, \
+    /usr/sbin/iptables, \
+    /usr/bin/tcpdump, \
+    /usr/bin/nmap, \
+    /usr/bin/sqlmap, \
+    /usr/bin/hydra, \
+    /usr/bin/gobuster, \
+    /usr/local/bin/nikto, \
+    /usr/bin/tshark, \
+    /bin/nc, \
+    /usr/bin/nc
+EOF
+chmod 440 /etc/sudoers.d/ctfteam || echo "[!] Không set chmod cho /etc/sudoers.d/ctfteam"
+
+###########################################
+# MariaDB CONFIG + INIT (dựa trên bản gốc)
+###########################################
+
+# Cho MariaDB listen trên 0.0.0.0 để container khác truy cập được
+sed -i 's/^bind-address\s*=.*/bind-address = 0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf 2>/dev/null || true
+
+# Đảm bảo quyền cho thư mục MariaDB (do /var/lib/mysql được mount volume runtime)
+mkdir -p /var/run/mysqld
+chown -R mysql:mysql /var/lib/mysql /var/run/mysqld 2>/dev/null || true
+
+# Start MariaDB service
+echo "[*] Starting MariaDB..."
+service mariadb start
+sleep 5
+
+# Fix MariaDB root login so PHP can connect (idempotent)
+# 1) Thử login root/root trước
+if mysql -u root -proot -e "SELECT 1" >/dev/null 2>&1; then
+    echo "[*] MariaDB: root đã có password 'root', bỏ qua ALTER USER."
+else
+    # 2) Thử login root không pass (trường hợp mới cài)
+    if mysql -u root -e "SELECT 1" >/dev/null 2>&1; then
+        echo "[*] MariaDB: đang đặt password cho root = 'root'"
+        mysql -u root <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('root');
+FLUSH PRIVILEGES;
+EOF
+    else
+        echo "[!] MariaDB: KHÔNG login được với root (không pass, cũng không với pass 'root'). Kiểm tra lại nếu cần."
+    fi
+fi
+
+# Initialize database only if first time
+if [ ! -d "/var/lib/mysql/sis_db" ]; then
+    echo "[*] Initializing SIS database..."
+    mysql -u root -proot -e "CREATE DATABASE sis_db;" 2>/dev/null || echo "[!] CREATE DATABASE sis_db failed (có thể đã tồn tại)."
+    mysql -u root -proot sis_db < /opt/sis_db.sql 2>/dev/null || echo "[!] Import sis_db.sql failed."
+fi
+
+if [ ! -d "/var/lib/mysql/sms_db2" ]; then
+    echo "[*] Initializing SMS database..."
+    mysql -u root -proot -e "CREATE DATABASE sms_db2;" 2>/dev/null || echo "[!] CREATE DATABASE sms_db2 failed."
+    mysql -u root -proot sms_db2 < /opt/sms_db2.sql 2>/dev/null || echo "[!] Import sms_db2.sql failed."
+fi
+
+if [ ! -d "/var/lib/mysql/block_puzzle" ]; then
+    echo "[*] Initializing block-puzzle database..."
+    mysql -u root -proot -e "CREATE DATABASE block_puzzle;" 2>/dev/null || echo "[!] CREATE DATABASE block_puzzle failed."
+    mysql -u root -proot block_puzzle < /opt/block_puzzle.sql 2>/dev/null || echo "[!] Import block_puzzle.sql failed."
+fi
+
+# Tạo user riêng cho checker để connect từ network ctf_internal
+mysql -u root -proot <<EOF 2>/dev/null || echo "[!] CREATE USER/GRANT cho 'ctf' thất bại (có thể đã tồn tại)."
+CREATE USER IF NOT EXISTS 'ctf'@'%' IDENTIFIED BY 'ctfpass';
+GRANT ALL PRIVILEGES ON sis_db.* TO 'ctf'@'%';
+GRANT ALL PRIVILEGES ON sms_db2.* TO 'ctf'@'%';
+GRANT ALL PRIVILEGES ON block_puzzle.* TO 'ctf'@'%';
+FLUSH PRIVILEGES;
+EOF
+
+###########################################
+# SSH + APACHE (y như bản entry gốc)
+###########################################
+
+# Start SSH
+echo "[*] Starting SSH..."
+service ssh start
+
+# Start Apache ở foreground (PID 1) như cũ
+echo "[*] Starting Apache (apache2-foreground)..."
+apache2-foreground

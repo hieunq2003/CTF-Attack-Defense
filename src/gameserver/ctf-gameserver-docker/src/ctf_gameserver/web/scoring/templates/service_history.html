@@ -1,0 +1,59 @@
+{% extends 'base-wide.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+<script src="{% static 'service_util.js' %}" defer="defer"></script>
+<script src="{% static 'service_history.js' %}" defer="defer"></script>
+
+<noscript>
+    <div class="alert alert-danger" role="alert">{% trans 'Please enable JavaScript for this page to work!' %}</div>
+</noscript>
+
+<div>
+    <h1>{% block title %}{% trans 'Service History' %}{% endblock %}</h1>
+</div>
+
+<div class="clearfix mt-4">
+    <div class="dropdown float-start">
+        <button type="button" id="service-selector" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+            <span id="selected-service">{% trans 'Select service' %}</span>
+        </button>
+        <ul class="dropdown-menu">
+            {% for service in services %}
+            <li><a href="#{{ service.slug }}" class="dropdown-item">{{ service.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="float-end d-flex flex-row align-items-center">
+        <img src="{% static 'progress_spinner.gif' %}" id="load-spinner" class="me-3" hidden="hidden" alt="Progress spinner" />
+        <button type="button" id="refresh" class="btn btn-secondary me-3">
+            <i class="fa-solid fa-arrow-rotate-right" aria-label="Reload"></i>
+        </button>
+
+        <label class="me-3">Tick:</label>
+        <div class="input-group me-3">
+            <div class="input-group-text">{% trans 'Min' %}</div>
+            <input type="number" id="min-tick" class="form-control" min="0" value="{{ initial_min_tick }}" />
+        </div>
+        <div class="input-group">
+            <div class="input-group-text">{% trans 'Max' %}</div>
+            <input type="number" id="max-tick" class="form-control" min="1" value="{{ initial_max_tick }}" />
+            <button type="button" id="load-current" class="btn btn-secondary">{% trans 'Current' %}</button>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive mt-4">
+    <table id="history-table" class="table" hidden="hidden">
+        <thead>
+            <tr>
+            </tr>
+        </thead>
+
+        <tbody>
+        </tbody>
+    </table>
+</div>
+{% endblock %}
