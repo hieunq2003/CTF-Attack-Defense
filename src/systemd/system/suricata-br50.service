@@ -1,0 +1,17 @@
+[Unit]
+Description=Suricata IDS on CTF internal network
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+ExecStartPre=/usr/local/bin/suricata-generate-config.sh
+
+ExecStart=/usr/bin/suricata -c /etc/suricata/suricata.yaml --af-packet
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

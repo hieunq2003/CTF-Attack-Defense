@@ -1,0 +1,28 @@
+[Unit]
+Description=CTF Gameserver Checker Master for %i
+After=network-online.target ctf-controller.service
+
+[Service]
+Type=simple
+User=root
+
+# Env chung (DB, loglevel)
+EnvironmentFile=/etc/ctf-gameserver/checkermaster.env
+# Env riêng từng service, ví dụ: checker-sis.env
+EnvironmentFile=-/etc/ctf-gameserver/checker-%i.env
+
+# Để ctf-checkermaster tự đọc env (qua prefix CTF_), không truyền args tay nữa
+ExecStart=/opt/ctf-venv/bin/ctf-checkermaster
+
+TimeoutStopSec=90
+Restart=on-failure
+RestartSec=5
+SyslogIdentifier=ctf-checkermaster@%i
+
+PrivateTmp=yes
+ProtectControlGroups=yes
+ProtectHome=yes
+ProtectSystem=strict
+
+[Install]
+WantedBy=multi-user.target

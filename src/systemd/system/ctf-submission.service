@@ -1,0 +1,25 @@
+[Unit]
+Description=CTF Flag-Submission Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+Environment=HOME=/tmp
+EnvironmentFile=/etc/ctf-gameserver/submission.env
+ExecStart=/opt/ctf-venv/bin/ctf-submission \
+    --dbhost=${DBHOST} \
+#    --dbport=${DBPORT} \
+    --dbname=${DBNAME} \
+    --dbuser=${DBUSER} \
+    --dbpassword=${DBPASSWORD} \
+    --flagsecret=${FLAGSECRET} \
+    --teamregex=${TEAMREGEX} \
+    --listen=${LISTEN} \
+    --loglevel=${LOGLEVEL}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

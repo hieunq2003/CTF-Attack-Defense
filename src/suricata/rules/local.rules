@@ -1,0 +1,62 @@
+# ================================
+#  LOCAL RULES - CTF PTITHCM
+# ================================
+
+# --- SCAN RULES ---
+
+# SCAN vào BTC_NET: DROP NGAY, log 1 lần / 60s / (SRC,DST)
+drop tcp $TEAM_NET any -> $BTC_NET any (msg:"CTF [FORBIDDEN] SCAN - SYN scan to BTC Infra"; flags:S; threshold:type both, track by_both, count 3, seconds 60; classtype:attempted-recon; sid:200001; rev:7;)
+drop tcp $TEAM_NET any -> $BTC_NET any (msg:"CTF [FORBIDDEN] SCAN - NULL scan to BTC Infra"; flags:0; threshold:type both, track by_both, count 3, seconds 60; classtype:attempted-recon; sid:200002; rev:7;)
+drop tcp $TEAM_NET any -> $BTC_NET any (msg:"CTF [FORBIDDEN] SCAN - FIN scan to BTC Infra"; flags:F; threshold:type both, track by_both, count 3, seconds 60; classtype:attempted-recon; sid:200003; rev:7;)
+drop tcp $TEAM_NET any -> $BTC_NET any (msg:"CTF [FORBIDDEN] SCAN - XMAS scan to BTC Infra"; flags:FPU; threshold:type both, track by_both, count 3, seconds 60; classtype:attempted-recon; sid:200004; rev:7;)
+drop udp $TEAM_NET any -> $BTC_NET any (msg:"CTF [FORBIDDEN] SCAN - UDP scan to BTC Infra"; threshold:type both, track by_both, count 3, seconds 60; classtype:attempted-recon; sid:200005; rev:7;)
+
+# SCAN giữa các team: cho phép nhưng log mass scan (1 alert / 60s / (SRC,DST))
+alert tcp $TEAM_NET any -> $TEAM_NET any (msg:"CTF [ALLOWED] SCAN - Mass SYN scan between teams"; flags:S; threshold:type both, track by_both, count 1000, seconds 60; classtype:attempted-recon; sid:200006; rev:6;)
+
+
+# --- SSH BRUTEFORCE ---
+
+# SSH BRUTE vào BTC_INFRA: DROP, giới hạn theo attacker (src)
+drop tcp $TEAM_NET any -> $BTC_INFRA 22 (msg:"CTF [FORBIDDEN] BRUTEFORCE - SSH attack to BTC Infra"; flags:S; flow:to_server; detection_filter:track by_src, count 100, seconds 60; classtype:attempted-admin; sid:200010; rev:4;)
+
+# SSH BRUTE giữa các team: ALLOWED nhưng log, giới hạn theo attacker (src)
+alert tcp !$BTC_INFRA any -> $TEAM_NET 22 (msg:"CTF [ALLOWED] BRUTEFORCE - SSH between teams"; flags:S; flow:to_server; detection_filter:track by_src, count 20000, seconds 60; classtype:attempted-admin; sid:200011; rev:4;)
+
+
+# --- WEB ATTACKS ---
+
+# Upload PHP / Directory Traversal vào BTC_INFRA: DROP
+drop http $TEAM_NET any -> $BTC_INFRA any (msg:"CTF [FORBIDDEN] WEB - PHP upload to BTC Infra"; http.request_body; pcre:"/filename\s*=\s*\"?[^\" ]+\.php/i"; classtype:web-application-attack; sid:200020; rev:3;)
+drop http $TEAM_NET any -> $BTC_INFRA any (msg:"CTF [FORBIDDEN] WEB - Directory traversal to BTC Infra"; http.uri; content:"../"; nocase; classtype:web-application-attack; sid:200021; rev:3;)
+
+# Upload / LFI giữa các team: cho phép nhưng log lại
+alert http $TEAM_NET any -> $TEAM_NET any (msg:"CTF [ALLOWED] WEB - PHP upload between teams"; http.request_body; pcre:"/filename\s*=\s*\"?[^\" ]+\.php/i"; classtype:web-application-attack; sid:200022; rev:3;)
+alert http $TEAM_NET any -> $TEAM_NET any (msg:"CTF [ALLOWED] WEB - Directory traversal between teams"; http.uri; content:"../"; nocase; classtype:web-application-attack; sid:200023; rev:3;)
+
+
+# --- DoS / DDoS ---
+
+# DoS vào BTC_INFRA: DROP, giới hạn theo victim (dst)
+drop tcp $TEAM_NET any -> $BTC_INFRA any (msg:"CTF [FORBIDDEN] DoS - SYN flood to BTC Infra"; flags:S; detection_filter:track by_dst, count 10000, seconds 5; classtype:attempted-dos; sid:200030; rev:3;)
+drop icmp $TEAM_NET any -> $BTC_INFRA any (msg:"CTF [FORBIDDEN] DoS - ICMP flood to BTC Infra"; detection_filter:track by_dst, count 8000, seconds 5; classtype:attempted-dos; sid:200031; rev:3;)
+
+# DoS giữa các team: quá mức thì DROP, giới hạn theo victim (dst)
+drop tcp $TEAM_NET any -> $TEAM_NET any (msg:"CTF [FORBIDDEN] DoS - Excessive SYN flood between teams"; flags:S; detection_filter:track by_dst, count 10000, seconds 5; classtype:attempted-dos; sid:200034; rev:4;)
+drop icmp $TEAM_NET any -> $TEAM_NET any (msg:"CTF [FORBIDDEN] DoS - Excessive ICMP flood between teams"; detection_filter:track by_dst, count 6000, seconds 5; classtype:attempted-dos; sid:200035; rev:4;)
+
+
+# --- DMZ ACCESS CONTROL ---
+
+# Uncomment nếu muốn chặn truy cập trái phép DMZ
+#drop tcp $TEAM_NET any -> $DMZ_BACKEND_NET [1:6665,6667:65535] (msg:"CTF [FORBIDDEN] DMZ - Unauthorized access to backend DMZ"; classtype:policy-violation; sid:200040; rev:1;)
+#drop tcp $TEAM_NET any -> $DMZ_PUBLIC_NET [1:79,81:65535] (msg:"CTF [FORBIDDEN] DMZ - Unauthorized access to public DMZ"; classtype:policy-violation; sid:200041; rev:1;)
+
+
+# --- SUBMISSION ---
+
+# Submission flood tới backend: DROP, giới hạn theo src (client spam)
+drop tcp $TEAM_NET any -> $DMZ_BACKEND_NET 6666 (msg:"CTF [FORBIDDEN] Submission flood"; detection_filter:track by_src, count 1000, seconds 5; classtype:attempted-dos; sid:200050; rev:3;)
+
+# Submit flag bình thường: chỉ ALERT
+alert tcp $TEAM_NET any -> $DMZ_BACKEND_NET 6666 (msg:"CTF [ALLOWED] DMZ - Flag submission"; classtype:policy-violation; sid:200051; rev:2;)

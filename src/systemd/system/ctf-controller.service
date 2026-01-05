@@ -1,0 +1,32 @@
+[Unit]
+Description=CTF Gameserver Controller
+After=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+Environment=HOME=/tmp
+EnvironmentFile=/etc/ctf-gameserver/controller.env
+ExecStart=/opt/ctf-venv/bin/ctf-controller
+Restart=on-failure
+RestartSec=5
+
+# Security hardening (theo đúng repo)
+CapabilityBoundingSet=
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateTmp=yes
+PrivateUsers=yes
+ProtectControlGroups=yes
+ProtectHome=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectSystem=strict
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target
