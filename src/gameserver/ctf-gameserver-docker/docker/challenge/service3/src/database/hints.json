@@ -1,0 +1,18 @@
+{
+  "stages": [
+    {
+      "stage": 1,
+      "title": "Intro",
+      "text": "Chào mừng tới Block Puzzle!"
+    },
+    {
+      "stage": 2,
+      "title": "Hint",
+      "text": "Đọc kỹ dữ liệu JSON để tìm bí mật."
+    }
+  ],
+  "secret": {
+    "tick": 0,
+    "pieces": ["", "", ""]
+  }
+}
